@@ -1,13 +1,13 @@
 pragma solidity ^0.5.0;
 
 contract SimpleStorage {
-  uint storedData;
+  mapping (address => string) todos;
 
-  function set(uint x) public {
-    storedData = x;
+  function setTodos(string memory _json) public {
+    todos[msg.sender] = _json;
   }
 
-  function get() public view returns (uint) {
-    return storedData;
+  function getTodos() public view returns (string memory) {
+    return todos[msg.sender];
   }
 }
