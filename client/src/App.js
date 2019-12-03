@@ -13,6 +13,7 @@ class App extends Component {
     this.updateTitleInput = this.updateTitleInput.bind(this);
     this.toggleTodo = this.toggleTodo.bind(this);
     this.saveTodos = this.saveTodos.bind(this);
+    this.deleteTodos = this.deleteTodos.bind(this);
 
     this.init();
   }
@@ -48,10 +49,7 @@ class App extends Component {
   fetchTodos = async () => {
     const { contract } = this.state;
     const response = await contract.methods.getTodos().call();
-    console.log("response", response);
-    if (response) {
-      this.setState({ ...this.state, todos: JSON.parse(response) });
-    }
+    this.setState({ ...this.state, todos: JSON.parse(response) });
   };
 
   addTodo = title =>
@@ -74,6 +72,15 @@ class App extends Component {
       .send({ from: accounts[0] });
   };
 
+  deleteTodos = async () => {
+    const { accounts, contract, web3 } = this.state;
+
+    await contract.methods
+      .deleteTodos()
+      .send({ from: accounts[0], value: web3.utils.toWei("1.0", "ether") });
+    await this.fetchTodos();
+  };
+
   updateTitleInput = e =>
     this.setState({ ...this.state, title: e.target.value });
 
@@ -83,19 +90,40 @@ class App extends Component {
     }
     return (
       <div className="App">
-        <ul>
-          {this.state.todos.map((todo, i) => (
-            <li key={`${todo.title}:${i}`} onClick={() => this.toggleTodo(i)}>
-              {todo.title}, {todo.isActive ? "o" : "x"}
-            </li>
-          ))}
-        </ul>
-        <input
-          value={this.state.title}
-          onChange={e => this.updateTitleInput(e)}
-        />
-        <button onClick={() => this.addTodo(this.state.title)}>Add</button>
-        <button onClick={() => this.saveTodos()}>Save to Blockchain</button>
+        <div style={{ width: 500, textAlign: "left" }}>
+          <ol
+            style={{
+              borderWidth: 1,
+              borderColor: "#ddd",
+              borderStyle: "solid",
+              width: 400
+            }}
+          >
+            {this.state.todos &&
+              this.state.todos.map((todo, i) => (
+                <li
+                  key={`${todo.title}:${i}`}
+                  onClick={() => this.toggleTodo(i)}
+                  style={
+                    todo.isActive
+                      ? { padding: 10 }
+                      : { padding: 10, textDecoration: "line-through" }
+                  }
+                >
+                  {todo.title}
+                </li>
+              ))}
+          </ol>
+          <input
+            value={this.state.title}
+            onChange={e => this.updateTitleInput(e)}
+          />
+          <button onClick={() => this.addTodo(this.state.title)}>Add</button>
+        </div>
+        <div>
+          <button onClick={() => this.saveTodos()}>Save to Blockchain</button>
+          <button onClick={() => this.deleteTodos()}>Delete ALL</button>
+        </div>
       </div>
     );
   }
